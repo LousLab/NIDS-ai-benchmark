@@ -1,0 +1,13 @@
+numpy>=1.26
+pandas>=2.1
+scikit-learn>=1.4
+imbalanced-learn>=0.12
+xgboost>=2.0
+matplotlib>=3.8
+joblib>=1.3
+pytest>=8.0
+
+# Optional deep-learning extras. The pipeline falls back if they are missing.
+# torch
+# pytorch-tabnet
+# tensorflow
