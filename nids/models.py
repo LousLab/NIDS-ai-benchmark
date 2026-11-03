@@ -59,20 +59,18 @@ def train_xgb(cfg: ExperimentConfig, arrays: dict, use_weights: bool):
 
 
 def train_mlp(cfg: ExperimentConfig, arrays: dict, use_weights: bool):
-    """Keras MLP when TensorFlow is installed; otherwise sklearn MLPClassifier."""
+    """Use Keras when installed, otherwise a fixed-epoch sklearn MLP."""
     try:
-        return _train_keras_mlp(cfg, arrays, use_weights)
-    except Exception:
+        import tensorflow  # noqa: F401
+    except ImportError:
         model = MLPClassifier(
             hidden_layer_sizes=(128, 64),
             activation="relu",
             alpha=1e-4,
             batch_size=128,
             learning_rate_init=1e-3,
-            max_iter=max(30, cfg.mlp_epochs * 8),
-            early_stopping=True,
-            validation_fraction=0.15,
-            n_iter_no_change=cfg.mlp_patience,
+            max_iter=cfg.mlp_epochs,
+            early_stopping=False,
             random_state=cfg.seed,
         )
         fit_kwargs = {}
@@ -81,12 +79,12 @@ def train_mlp(cfg: ExperimentConfig, arrays: dict, use_weights: bool):
         return _fit_predict_sklearn(
             model, arrays["x_train"], arrays["y_train"], arrays["x_test"], fit_kwargs
         )
+    return _train_keras_mlp(cfg, arrays, use_weights)
 
 
 def _train_keras_mlp(cfg: ExperimentConfig, arrays: dict, use_weights: bool):
     import tensorflow as tf
     from tensorflow.keras import Sequential
-    from tensorflow.keras.callbacks import EarlyStopping
     from tensorflow.keras.layers import Dense, Dropout, Input
 
     tf.keras.utils.set_random_seed(cfg.seed)
@@ -103,22 +101,13 @@ def _train_keras_mlp(cfg: ExperimentConfig, arrays: dict, use_weights: bool):
     )
     loss = "sparse_categorical_crossentropy" if n_classes > 2 else "binary_crossentropy"
     model.compile(optimizer="adam", loss=loss, metrics=["accuracy"])
-    callbacks = [
-        EarlyStopping(
-            monitor="val_loss",
-            patience=cfg.mlp_patience,
-            restore_best_weights=True,
-        )
-    ]
     class_weight = class_weight_dict(arrays["y_train"]) if use_weights else None
     start = time.perf_counter()
     model.fit(
         arrays["x_train"],
         arrays["y_train"],
-        validation_data=(arrays["x_val"], arrays["y_val"]),
         epochs=cfg.mlp_epochs,
         batch_size=128,
-        callbacks=callbacks,
         class_weight=class_weight,
         verbose=0,
     )
@@ -148,11 +137,8 @@ def train_tabnet(cfg: ExperimentConfig, arrays: dict, use_weights: bool):
     model.fit(
         X_train=arrays["x_train"],
         y_train=arrays["y_train"],
-        eval_set=[(arrays["x_val"], arrays["y_val"])],
-        eval_name=["val"],
-        eval_metric=["accuracy"],
         max_epochs=cfg.tabnet_epochs,
-        patience=cfg.tabnet_patience,
+        patience=0,
         batch_size=1024,
         virtual_batch_size=128,
         num_workers=0,
