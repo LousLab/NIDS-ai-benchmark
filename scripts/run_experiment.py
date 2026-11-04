@@ -21,6 +21,9 @@ def main() -> None:
     parser.add_argument("--preset", choices=["smoke", "fast", "full"], default="fast")
     parser.add_argument("--task", choices=["multiclass", "binary"], default="multiclass")
     parser.add_argument(
+        "--split-mode", choices=["stratified", "time"], default="stratified"
+    )
+    parser.add_argument(
         "--imbalance",
         choices=["none", "class_weight", "smote"],
         default="class_weight",
@@ -36,6 +39,16 @@ def main() -> None:
         help="Comma-separated subset of rf,xgb,mlp,tabnet",
     )
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--rf-estimators", type=int, default=None)
+    parser.add_argument("--xgb-estimators", type=int, default=None)
+    parser.add_argument("--mlp-epochs", type=int, default=None)
+    parser.add_argument("--tabnet-epochs", type=int, default=None)
+    parser.add_argument(
+        "--split-seed",
+        type=int,
+        default=42,
+        help="Seed for the holdout split and training-only sample caps.",
+    )
     args = parser.parse_args()
     models = None
     if args.models:
@@ -44,10 +57,16 @@ def main() -> None:
         dataset=args.dataset,
         preset=args.preset,
         task=args.task,
+        split_mode=args.split_mode,
         imbalance=args.imbalance,
         feature_selection=args.feature_selection,
         models=models,
         seed=args.seed,
+        split_seed=args.split_seed,
+        rf_estimators=args.rf_estimators,
+        xgb_estimators=args.xgb_estimators,
+        mlp_epochs=args.mlp_epochs,
+        tabnet_epochs=args.tabnet_epochs,
     )
     if args.preset == "smoke":
         out = run_smoke(cfg)
