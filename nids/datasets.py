@@ -70,6 +70,9 @@ def _to_binary_labels(y: pd.Series, dataset: str) -> pd.Series:
 def _finalize_frame(df: pd.DataFrame, dataset: str, cfg: ExperimentConfig) -> pd.DataFrame:
     df = _normalize_columns(df)
     label_col = detect_label_column(df.columns.tolist(), dataset)
+    label_text = df[label_col].astype(str).str.strip().str.lower()
+    valid_label = df[label_col].notna() & ~label_text.isin({"", "nan", "none", "null", "<na>"})
+    df = df.loc[valid_label].copy()
     df[label_col] = df[label_col].astype(str).str.strip()
     df = df[df[label_col].str.lower() != "label"]
     drop_cols = identifier_columns(df.columns.tolist(), dataset)
@@ -82,14 +85,16 @@ def _finalize_frame(df: pd.DataFrame, dataset: str, cfg: ExperimentConfig) -> pd
 
 def load_wsn_ds(cfg: ExperimentConfig) -> tuple[pd.DataFrame, dict]:
     path = wsn_ds_csv()
-    df = pd.read_csv(path, low_memory=False)
-    df = _finalize_frame(df, "wsn_ds", cfg)
+    raw = pd.read_csv(path, low_memory=False)
+    source_rows = int(len(raw))
+    df = _finalize_frame(raw, "wsn_ds", cfg)
     meta = {
         "path": str(path),
-        "source_rows": int(len(df)),
+        "source_rows": source_rows,
+        "rows_after_label_cleaning": int(len(df)),
         "identifier_policy": sorted(WSN_IDENTIFIER_COLS),
+        "sampling": "Full cleaned dataset loaded; configured row caps are applied to the training partition after splitting.",
     }
-    df = _cap_classes(df, cfg)
     meta["working_rows"] = int(len(df))
     meta["class_counts"] = df["label"].value_counts().to_dict()
     return df, meta
@@ -189,9 +194,11 @@ def load_cicids2018(cfg: ExperimentConfig) -> tuple[pd.DataFrame, dict]:
         "class_counts": df["label"].value_counts().to_dict(),
         "sampling": (
             "Per-file class-capped reservoir sampling, then a global per-class cap. "
-            "This over-represents rare attacks relative to raw traffic; evaluate with "
-            "macro-F1 and per-class recall, not accuracy."
+            "Sampling happens before the split and over-represents rare attacks. "
+            "CICIDS2018 metrics are exploratory and are not prevalence-representative; "
+            "do not interpret accuracy or precision as deployment estimates."
         ),
+        "test_prevalence_note": "Pre-split class-capped sample; not raw traffic prevalence.",
     }
     return df, meta
 
