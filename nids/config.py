@@ -16,6 +16,8 @@ class ExperimentConfig:
     dataset: Literal["wsn_ds", "cicids2018"]
     preset: Preset = "fast"
     seed: int = 42
+    # Keep the holdout fixed across model seeds to isolate training randomness.
+    split_seed: int = 42
     test_size: float = 0.15
     val_size: float = 0.15
     split_mode: SplitMode = "stratified"
@@ -26,20 +28,18 @@ class ExperimentConfig:
     models: Sequence[str] = field(
         default_factory=lambda: ("rf", "xgb", "mlp", "tabnet")
     )
-    # Working-set caps. Test metrics are computed on a held-out slice of this set.
+    # Caps apply to training only; validation and test keep observed prevalence.
     max_per_class: int | None = 15000
     max_total_rows: int | None = 200000
     skip_large_cicids_files_mb: float = 1024.0
     mlp_epochs: int = 25
-    mlp_patience: int = 4
     tabnet_epochs: int = 20
-    tabnet_patience: int = 5
     rf_estimators: int = 200
     xgb_estimators: int = 200
     output_dir: Path = Path("results")
 
     def run_name(self) -> str:
-        return f"{self.dataset}_{self.task}_{self.preset}_{self.imbalance}"
+        return f"{self.dataset}_{self.task}_{self.split_mode}_{self.preset}_{self.imbalance}"
 
 
 def preset_overrides(preset: Preset) -> dict:
