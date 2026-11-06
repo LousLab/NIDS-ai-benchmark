@@ -32,13 +32,23 @@ python -m pip install -r requirements-tabnet.txt
 ## Run an experiment
 
 ```bash
-python scripts/run_experiment.py --dataset wsn_ds --preset fast --task multiclass --imbalance class_weight --models rf,xgb,mlp,tabnet --seed 42
+python scripts/run_experiment.py --dataset wsn_ds --preset fast --task multiclass --split-mode stratified --imbalance class_weight --models rf,xgb,mlp,tabnet --seed 42 --split-seed 42 --mlp-epochs 45 --tabnet-epochs 20
 ```
 
 Presets are `smoke`, `fast`, and `full`. Use `--help` to see the available datasets, tasks, imbalance options, feature-selection options, and model choices. The smoke preset uses synthetic data to check that the pipeline runs; it is not a model benchmark.
 
 ## Outputs and evaluation
 
-Each run writes a timestamped folder under `results/` with aggregate metrics, per-class reports, confusion matrices, and comparison plots. The primary metric is macro-F1; accuracy, balanced accuracy, macro precision and recall, weighted F1, MCC, and training time are also recorded. Preprocessing is fitted on training data, and the held-out test split is reserved for final evaluation.
+Each run writes a timestamped folder under `results/` with aggregate metrics, per-class reports, confusion matrices, class prevalence by split, and comparison plots. For stratified WSN-DS runs, identical feature vectors are grouped into the same partition, conflicting feature vectors with different labels are excluded, and compute caps are applied to training only. Validation and test retain the cleaned dataset's observed class prevalence. The holdout uses `--split-seed` (42 by default), while `--seed` controls model randomness. Repeating model seeds with one split isolates training variability from test-set variation.
+
+The first comparison is a fixed-configuration baseline: no model-specific hyperparameter search is performed, and validation is reserved for a later shared tuning design. It uses 150 trees for RF and XGBoost, 45 MLP epochs, and 20 TabNet epochs. The primary metric is macro-F1 over classes present in the test set; reports also include all-label macro-F1, accuracy, balanced accuracy, macro precision and recall, weighted F1, MCC, per-class support, and training time. The WSN-DS `Time` column is excluded from model inputs in both protocols because it can act as a simulation-scenario shortcut; chronological mode uses it only to order whole-time-value boundaries and collapses repeated feature vectors to their earliest occurrence. That result is a temporal/scenario-shift stress test; attack classes absent from the final window are explicitly reported as unsupported.
+
+Example reduced-budget chronological stress run (caps are intentionally disabled for this split mode):
+
+```bash
+python scripts/run_experiment.py --dataset wsn_ds --preset fast --task multiclass --split-mode time --imbalance class_weight --models rf,xgb,mlp,tabnet --seed 42 --split-seed 42 --rf-estimators 50 --xgb-estimators 50 --mlp-epochs 5 --tabnet-epochs 4
+```
+
+CICIDS2018 currently uses class-capped sampling before splitting because of its size. Its resulting test distribution is not representative of raw traffic prevalence, so those results are exploratory and should not be presented as deployment estimates. WSN-DS is the prevalence-aware primary evaluation in this repository. WSN-DS was generated from simulated LEACH traffic; it is not a substitute for validation on operational network captures ([original dataset paper](https://doi.org/10.1155/2016/4731953)).
 
 Raw data, local environments, and generated run outputs are excluded from Git. Reports intended for publication should be added separately with the run configuration, sampling details, and limitations.
