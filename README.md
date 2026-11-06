@@ -52,3 +52,15 @@ python scripts/run_experiment.py --dataset wsn_ds --preset fast --task multiclas
 CICIDS2018 currently uses class-capped sampling before splitting because of its size. Its resulting test distribution is not representative of raw traffic prevalence, so those results are exploratory and should not be presented as deployment estimates. WSN-DS is the prevalence-aware primary evaluation in this repository. WSN-DS was generated from simulated LEACH traffic; it is not a substitute for validation on operational network captures ([original dataset paper](https://doi.org/10.1155/2016/4731953)).
 
 Raw data, local environments, and generated run outputs are excluded from Git. Reports intended for publication should be added separately with the run configuration, sampling details, and limitations.
+
+## Summarize repeated runs
+
+To combine runs that use the same split and training sample, pass their result folders to the summary script:
+
+```bash
+python scripts/summarize_runs.py results/run_seed_42 results/run_seed_43 results/run_seed_44 --output-dir results/stratified_seed_analysis
+```
+
+The script checks run comparability, then writes mean and standard deviation metric tables and seed variability and per-class F1 plots.
+
+
