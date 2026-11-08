@@ -178,7 +178,7 @@ def run_experiment(cfg: ExperimentConfig, smoke_frame=None) -> Path:
         )
     use_weights = cfg.imbalance == "class_weight"
 
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     out_dir = Path(cfg.output_dir) / f"{stamp}_{cfg.run_name()}"
     out_dir.mkdir(parents=True, exist_ok=True)
     plot_class_distribution(y, out_dir / "class_distribution.png")
