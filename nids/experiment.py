@@ -101,6 +101,14 @@ def _split_class_counts(split: dict) -> dict[str, dict[str, int]]:
 
 
 def run_experiment(cfg: ExperimentConfig, smoke_frame=None) -> Path:
+    if not (
+        0 < cfg.test_size < 1
+        and 0 < cfg.val_size < 1
+        and cfg.test_size + cfg.val_size < 1
+    ):
+        raise ValueError(
+            "test_size and val_size must be positive fractions whose sum is below 1."
+        )
     if not cfg.models:
         raise ValueError("At least one model must be selected.")
     unknown_models = sorted(set(cfg.models) - TRAINERS.keys())
