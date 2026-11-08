@@ -18,7 +18,7 @@ def wsn_ds_csv() -> Path:
     env = os.environ.get("WSN_DS_PATH")
     candidates = []
     if env:
-        candidates.append(Path(env))
+        candidates.append(Path(env).expanduser())
     candidates.extend(
         [
             PROJECT_ROOT / "data" / "raw" / "WSN-DS.csv",
@@ -38,7 +38,7 @@ def cicids2018_dir() -> Path:
     env = os.environ.get("CICIDS2018_DIR")
     candidates = []
     if env:
-        candidates.append(Path(env))
+        candidates.append(Path(env).expanduser())
     candidates.extend(
         [
             PROJECT_ROOT / "data" / "raw" / "cicids2018",
