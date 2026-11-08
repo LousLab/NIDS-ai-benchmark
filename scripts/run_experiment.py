@@ -51,8 +51,16 @@ def main() -> None:
     )
     args = parser.parse_args()
     models = None
-    if args.models:
+    if args.models is not None:
         models = tuple(m.strip() for m in args.models.split(",") if m.strip())
+        if not models:
+            parser.error("--models must include at least one model name")
+        supported = {"rf", "xgb", "mlp", "tabnet"}
+        unknown = sorted(set(models) - supported)
+        if unknown:
+            parser.error(
+                f"unknown model(s): {', '.join(unknown)}; choose from {', '.join(sorted(supported))}"
+            )
     cfg = build_config(
         dataset=args.dataset,
         preset=args.preset,
