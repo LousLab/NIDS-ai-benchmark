@@ -101,6 +101,14 @@ def _split_class_counts(split: dict) -> dict[str, dict[str, int]]:
 
 
 def run_experiment(cfg: ExperimentConfig, smoke_frame=None) -> Path:
+    if not cfg.models:
+        raise ValueError("At least one model must be selected.")
+    unknown_models = sorted(set(cfg.models) - TRAINERS.keys())
+    if unknown_models:
+        raise ValueError(
+            f"Unknown model(s): {', '.join(unknown_models)}. "
+            f"Choose from {', '.join(sorted(TRAINERS))}."
+        )
     if smoke_frame is not None:
         df = smoke_frame.copy()
         meta = {"path": "synthetic_smoke", "class_counts": df["label"].value_counts().to_dict()}
