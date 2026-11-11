@@ -101,6 +101,10 @@ def _split_class_counts(split: dict) -> dict[str, dict[str, int]]:
 
 
 def run_experiment(cfg: ExperimentConfig, smoke_frame=None) -> Path:
+    for name in ("max_per_class", "max_total_rows"):
+        value = getattr(cfg, name)
+        if value is not None and value < 1:
+            raise ValueError(f"{name} must be positive when set.")
     if not (
         0 < cfg.test_size < 1
         and 0 < cfg.val_size < 1
