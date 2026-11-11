@@ -151,6 +151,7 @@ def load_cicids2018(cfg: ExperimentConfig) -> tuple[pd.DataFrame, dict]:
     files, skipped = _cicids_csv_files(root, cfg)
     max_per_class = cfg.max_per_class or 15_000
     parts = []
+    files_used = []
     file_notes = []
     per_file_seed = cfg.seed
     for file in files:
@@ -177,6 +178,7 @@ def load_cicids2018(cfg: ExperimentConfig) -> tuple[pd.DataFrame, dict]:
         )
         if len(sampled):
             parts.append(sampled)
+            files_used.append(file.name)
         per_file_seed += 1
     if not parts:
         raise RuntimeError("Failed to sample any CICIDS2018 rows.")
@@ -184,7 +186,7 @@ def load_cicids2018(cfg: ExperimentConfig) -> tuple[pd.DataFrame, dict]:
     df = _cap_classes(df, cfg)
     meta = {
         "path": str(root),
-        "files_used": [f.name for f in files],
+        "files_used": files_used,
         "files_skipped": skipped,
         "file_notes": file_notes,
         "identifier_policy": sorted(CICIDS_IDENTIFIER_COLS),
