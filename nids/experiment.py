@@ -132,6 +132,8 @@ def run_experiment(cfg: ExperimentConfig, smoke_frame=None) -> Path:
         df, meta = load_dataset(cfg)
 
     x, y = coerce_features(df)
+    if len(y) == 0:
+        raise ValueError("No usable labeled rows remain after dataset cleaning.")
     time_col = next((c for c in x.columns if str(c).strip().lower() == "time"), None)
     if cfg.split_mode == "time" and time_col is None:
         raise ValueError("Time split requested, but the dataset has no numeric Time feature.")
