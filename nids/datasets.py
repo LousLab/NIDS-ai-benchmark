@@ -163,10 +163,9 @@ def load_cicids2018(cfg: ExperimentConfig) -> tuple[pd.DataFrame, dict]:
             file_notes.append({"file": file.name, "error": str(exc)})
             continue
         chunk_iter = pd.read_csv(file, chunksize=75_000, low_memory=False)
-        cleaned_chunks = []
-        for chunk in chunk_iter:
-            chunk = _finalize_frame(chunk, "cicids2018", cfg)
-            cleaned_chunks.append(chunk)
+        cleaned_chunks = (
+            _finalize_frame(chunk, "cicids2018", cfg) for chunk in chunk_iter
+        )
         sampled = _reservoir_by_class(cleaned_chunks, max_per_class, per_file_seed)
         file_notes.append(
             {
