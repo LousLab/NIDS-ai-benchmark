@@ -111,6 +111,8 @@ def run_experiment(cfg: ExperimentConfig, smoke_frame=None) -> Path:
         )
     if not cfg.models:
         raise ValueError("At least one model must be selected.")
+    if len(set(cfg.models)) != len(cfg.models):
+        raise ValueError("Model selections must not contain duplicates.")
     unknown_models = sorted(set(cfg.models) - TRAINERS.keys())
     if unknown_models:
         raise ValueError(
