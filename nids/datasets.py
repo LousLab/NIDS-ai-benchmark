@@ -109,7 +109,9 @@ def _cicids_csv_files(root: Path, cfg: ExperimentConfig) -> list[Path]:
     for file in files:
         size_mb = file.stat().st_size / (1024 * 1024)
         if size_mb > cfg.skip_large_cicids_files_mb:
-            skipped.append({"file": file.name, "size_mb": round(size_mb, 1)})
+            skipped.append(
+                {"file": file.relative_to(root).as_posix(), "size_mb": round(size_mb, 1)}
+            )
             continue
         kept.append(file)
     if not kept:
@@ -161,7 +163,9 @@ def load_cicids2018(cfg: ExperimentConfig) -> tuple[pd.DataFrame, dict]:
         try:
             raw_label = detect_label_column(header.columns.tolist(), "cicids2018")
         except ValueError as exc:
-            file_notes.append({"file": file.name, "error": str(exc)})
+            file_notes.append(
+                {"file": file.relative_to(root).as_posix(), "error": str(exc)}
+            )
             continue
         chunk_iter = pd.read_csv(file, chunksize=75_000, low_memory=False)
         cleaned_chunks = (
@@ -170,7 +174,7 @@ def load_cicids2018(cfg: ExperimentConfig) -> tuple[pd.DataFrame, dict]:
         sampled = _reservoir_by_class(cleaned_chunks, max_per_class, per_file_seed)
         file_notes.append(
             {
-                "file": file.name,
+                "file": file.relative_to(root).as_posix(),
                 "rows_sampled": int(len(sampled)),
                 "classes": sampled["label"].value_counts().to_dict() if len(sampled) else {},
                 "usecols_note": usecols_note,
@@ -178,7 +182,7 @@ def load_cicids2018(cfg: ExperimentConfig) -> tuple[pd.DataFrame, dict]:
         )
         if len(sampled):
             parts.append(sampled)
-            files_used.append(file.name)
+            files_used.append(file.relative_to(root).as_posix())
         per_file_seed += 1
     if not parts:
         raise RuntimeError("Failed to sample any CICIDS2018 rows.")
