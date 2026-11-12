@@ -105,6 +105,10 @@ def run_experiment(cfg: ExperimentConfig, smoke_frame=None) -> Path:
         value = getattr(cfg, name)
         if value is not None and value < 1:
             raise ValueError(f"{name} must be positive when set.")
+    if cfg.feature_selection == "mutual_info" and cfg.k_features < 1:
+        raise ValueError(
+            "k_features must be positive when mutual-information selection is used."
+        )
     if not (
         0 < cfg.test_size < 1
         and 0 < cfg.val_size < 1
