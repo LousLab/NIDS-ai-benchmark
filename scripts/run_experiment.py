@@ -55,6 +55,8 @@ def main() -> None:
         models = tuple(m.strip() for m in args.models.split(",") if m.strip())
         if not models:
             parser.error("--models must include at least one model name")
+        if len(set(models)) != len(models):
+            parser.error("--models must not contain duplicate model names")
         supported = {"rf", "xgb", "mlp", "tabnet"}
         unknown = sorted(set(models) - supported)
         if unknown:
