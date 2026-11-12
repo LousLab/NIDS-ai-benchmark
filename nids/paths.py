@@ -16,9 +16,14 @@ def _first_existing(candidates: list[Path]) -> Path | None:
 
 def wsn_ds_csv() -> Path:
     env = os.environ.get("WSN_DS_PATH")
-    candidates = []
     if env:
-        candidates.append(Path(env).expanduser())
+        path = Path(env).expanduser()
+        if not path.is_file():
+            raise FileNotFoundError(
+                f"WSN_DS_PATH must point to an existing CSV file: {path}"
+            )
+        return path
+    candidates = []
     candidates.extend(
         [
             PROJECT_ROOT / "data" / "raw" / "WSN-DS.csv",
