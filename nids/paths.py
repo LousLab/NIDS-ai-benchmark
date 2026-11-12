@@ -41,9 +41,14 @@ def wsn_ds_csv() -> Path:
 
 def cicids2018_dir() -> Path:
     env = os.environ.get("CICIDS2018_DIR")
-    candidates = []
     if env:
-        candidates.append(Path(env).expanduser())
+        path = Path(env).expanduser()
+        if not path.is_dir():
+            raise FileNotFoundError(
+                f"CICIDS2018_DIR must point to an existing directory: {path}"
+            )
+        return path
+    candidates = []
     candidates.extend(
         [
             PROJECT_ROOT / "data" / "raw" / "cicids2018",
