@@ -21,8 +21,8 @@ def maybe_smote(x: np.ndarray, y: np.ndarray, seed: int) -> tuple[np.ndarray, np
 
     counts = np.bincount(y)
     minority = int(counts[counts > 0].min())
-    k = max(1, min(5, minority - 1))
-    if k < 1:
-        return x, y
+    if minority < 2:
+        raise ValueError("SMOTE requires at least two training samples in every class.")
+    k = min(5, minority - 1)
     sampler = SMOTE(random_state=seed, k_neighbors=k)
     return sampler.fit_resample(x, y)
