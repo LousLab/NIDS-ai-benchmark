@@ -100,7 +100,9 @@ def load_wsn_ds(cfg: ExperimentConfig) -> tuple[pd.DataFrame, dict]:
     return df, meta
 
 
-def _cicids_csv_files(root: Path, cfg: ExperimentConfig) -> list[Path]:
+def _cicids_csv_files(
+    root: Path, cfg: ExperimentConfig
+) -> tuple[list[Path], list[dict[str, str | float]]]:
     files = sorted(root.rglob("*.csv"))
     if not files:
         raise FileNotFoundError(f"No CICIDS2018 CSV files under {root}")
