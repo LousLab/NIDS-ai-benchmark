@@ -97,4 +97,20 @@ def save_run(output_dir: Path, summary: dict, metrics: list[dict]) -> None:
         (output_dir / f"{item['model']}_report.json").write_text(
             json.dumps(item, indent=2), encoding="utf-8"
         )
-    pd.DataFrame(rows).to_csv(output_dir / "metrics.csv", index=False)
+    metric_columns = [
+        "model",
+        "accuracy",
+        "balanced_accuracy",
+        "precision_macro",
+        "recall_macro",
+        "f1_macro",
+        "f1_macro_all_labels",
+        "f1_weighted",
+        "mcc",
+        "train_seconds",
+        "n_test",
+        "test_supported_classes",
+    ]
+    pd.DataFrame(rows, columns=metric_columns).to_csv(
+        output_dir / "metrics.csv", index=False
+    )
