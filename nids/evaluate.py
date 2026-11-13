@@ -22,7 +22,18 @@ def evaluate_predictions(
     class_names: list[str],
     train_seconds: float,
 ) -> dict:
+    if len(y_true) == 0:
+        raise ValueError("Cannot evaluate predictions on an empty test set.")
+    if len(y_true) != len(y_pred):
+        raise ValueError("y_true and y_pred must contain the same number of labels.")
+    if not class_names:
+        raise ValueError("At least one class name is required for evaluation.")
     labels = list(range(len(class_names)))
+    valid_labels = set(labels)
+    if not set(np.unique(y_true)).issubset(valid_labels) or not set(
+        np.unique(y_pred)
+    ).issubset(valid_labels):
+        raise ValueError("Evaluation labels must be encoded as class-name indices.")
     present_labels = sorted(np.unique(y_true).tolist())
     report = classification_report(
         y_true,
