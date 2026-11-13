@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from functools import partial
+
 import numpy as np
 import pandas as pd
 from sklearn.feature_selection import SelectKBest, mutual_info_classif
@@ -130,7 +132,10 @@ class TrainOnlyPreprocessor:
         y_enc = self.label_encoder.transform(y_train)
         if self.cfg.feature_selection == "mutual_info":
             k = min(self.cfg.k_features, x_scaled.shape[1])
-            self.selector = SelectKBest(score_func=mutual_info_classif, k=k)
+            self.selector = SelectKBest(
+                score_func=partial(mutual_info_classif, random_state=self.cfg.seed),
+                k=k,
+            )
             self.selector.fit(x_scaled, y_enc)
             mask = self.selector.get_support()
             self.selected_names_ = [
