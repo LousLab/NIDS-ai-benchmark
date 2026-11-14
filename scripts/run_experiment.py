@@ -39,6 +39,12 @@ def main() -> None:
         help="Comma-separated subset of rf,xgb,mlp,tabnet",
     )
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--skip-large-cicids-files-mb",
+        type=float,
+        default=None,
+        help="Skip CICIDS2018 CSV files larger than this size in MB (default follows preset).",
+    )
     parser.add_argument("--rf-estimators", type=int, default=None)
     parser.add_argument("--xgb-estimators", type=int, default=None)
     parser.add_argument("--mlp-epochs", type=int, default=None)
@@ -73,6 +79,7 @@ def main() -> None:
         models=models,
         seed=args.seed,
         split_seed=args.split_seed,
+        skip_large_cicids_files_mb=args.skip_large_cicids_files_mb,
         rf_estimators=args.rf_estimators,
         xgb_estimators=args.xgb_estimators,
         mlp_epochs=args.mlp_epochs,
