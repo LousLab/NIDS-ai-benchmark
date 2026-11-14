@@ -43,3 +43,15 @@ The grouped stratified WSN-DS report records macro-F1 of 0.9548 for RF, 0.9538 f
 ## Reproducibility artifacts
 
 The three timestamped run folders and aggregate CSVs are under `results/cicids2018_grouped_stratified_seed_analysis/`. `results/` is excluded from Git, so copy the required metrics, configurations, and reports into the internship submission package if it needs to be reproducible outside this checkout.
+
+To repeat the same fixed-budget protocol after placing all ten CSVs in the configured CICIDS2018 data directory, run this command once per model seed (`42`, `43`, and `44`), keeping `--split-seed 42` unchanged:
+
+```bash
+python scripts/run_experiment.py --dataset cicids2018 --preset fast --task multiclass --split-mode stratified --imbalance class_weight --models rf,xgb,mlp,tabnet --seed 42 --split-seed 42 --rf-estimators 150 --xgb-estimators 150 --mlp-epochs 45 --tabnet-epochs 20 --skip-large-cicids-files-mb 5000
+```
+
+The 5,000 MB threshold includes the largest daily CSV. After recording the three timestamped output paths, aggregate them with:
+
+```bash
+python scripts/summarize_runs.py <seed-42-run> <seed-43-run> <seed-44-run> --output-dir results/cicids2018_grouped_stratified_seed_analysis
+```
