@@ -157,7 +157,8 @@ def load_cicids2018(cfg: ExperimentConfig) -> tuple[pd.DataFrame, dict]:
     parts = []
     files_used = []
     file_notes = []
-    per_file_seed = cfg.seed
+    # Keep the sampled working set fixed when model seeds are repeated.
+    per_file_seed = cfg.split_seed
     for file in files:
         usecols_note = None
         header = pd.read_csv(file, nrows=0)
@@ -189,7 +190,7 @@ def load_cicids2018(cfg: ExperimentConfig) -> tuple[pd.DataFrame, dict]:
     if not parts:
         raise RuntimeError("Failed to sample any CICIDS2018 rows.")
     df = pd.concat(parts, ignore_index=True)
-    df = _cap_classes(df, cfg)
+    df = _cap_classes(df, cfg, seed=cfg.split_seed)
     meta = {
         "path": str(root),
         "files_used": files_used,
@@ -199,6 +200,7 @@ def load_cicids2018(cfg: ExperimentConfig) -> tuple[pd.DataFrame, dict]:
         "dst_port_note": CICIDS_KEEP_NOTE,
         "working_rows": int(len(df)),
         "class_counts": df["label"].value_counts().to_dict(),
+        "sampling_seed": int(cfg.split_seed),
         "sampling": (
             "Per-file class-capped reservoir sampling, then a global per-class cap. "
             "Sampling happens before the split and over-represents rare attacks. "
@@ -210,15 +212,18 @@ def load_cicids2018(cfg: ExperimentConfig) -> tuple[pd.DataFrame, dict]:
     return df, meta
 
 
-def _cap_classes(df: pd.DataFrame, cfg: ExperimentConfig) -> pd.DataFrame:
+def _cap_classes(
+    df: pd.DataFrame, cfg: ExperimentConfig, seed: int | None = None
+) -> pd.DataFrame:
+    seed = cfg.seed if seed is None else seed
     if cfg.max_per_class is not None:
         pieces = []
         for _, group in df.groupby("label", sort=False):
             n = min(len(group), cfg.max_per_class)
-            pieces.append(group.sample(n=n, random_state=cfg.seed))
+            pieces.append(group.sample(n=n, random_state=seed))
         df = pd.concat(pieces, ignore_index=True)
     if cfg.max_total_rows is not None and len(df) > cfg.max_total_rows:
-        df = df.sample(n=cfg.max_total_rows, random_state=cfg.seed).reset_index(drop=True)
+        df = df.sample(n=cfg.max_total_rows, random_state=seed).reset_index(drop=True)
     return df
 
 
