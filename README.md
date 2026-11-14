@@ -51,6 +51,8 @@ python scripts/run_experiment.py --dataset wsn_ds --preset fast --task multiclas
 
 CICIDS2018 currently uses class-capped sampling before splitting because of its size. Its resulting test distribution is not representative of raw traffic prevalence, so those results are exploratory and should not be presented as deployment estimates. WSN-DS is the prevalence-aware primary evaluation in this repository. WSN-DS was generated from simulated LEACH traffic; it is not a substitute for validation on operational network captures ([original dataset paper](https://doi.org/10.1155/2016/4731953)).
 
+The current CICIDS2018 comparison repeats each of the four models across three model seeds on one fixed split. XGBoost has the highest macro-F1 (0.8199), MLP has the highest balanced accuracy (0.8723) and MCC (0.9161), and Random Forest trains fastest. No model leads on every metric. See [the CICIDS2018 findings and reproduction instructions](docs/cicids2018_findings.md) for the full results, per-class failures, protocol, and limitations. For the WSN-DS comparison, see [the WSN-DS findings](docs/benchmark_findings.md).
+
 Raw data, local environments, and generated run outputs are excluded from Git. Reports intended for publication should be added separately with the run configuration, sampling details, and limitations.
 
 ## Summarize repeated runs
