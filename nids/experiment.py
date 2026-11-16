@@ -101,6 +101,10 @@ def _split_class_counts(split: dict) -> dict[str, dict[str, int]]:
 
 
 def run_experiment(cfg: ExperimentConfig, smoke_frame=None) -> Path:
+    for name in ("seed", "split_seed"):
+        value = getattr(cfg, name)
+        if not 0 <= value <= 2**32 - 1:
+            raise ValueError(f"{name} must be between 0 and 2**32 - 1.")
     for name in ("max_per_class", "max_total_rows"):
         value = getattr(cfg, name)
         if value is not None and value < 1:
