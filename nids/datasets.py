@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from pathlib import Path
 
 import numpy as np
@@ -103,6 +104,9 @@ def load_wsn_ds(cfg: ExperimentConfig) -> tuple[pd.DataFrame, dict]:
 def _cicids_csv_files(
     root: Path, cfg: ExperimentConfig
 ) -> tuple[list[Path], list[dict[str, str | float]]]:
+    threshold_mb = cfg.skip_large_cicids_files_mb
+    if not math.isfinite(threshold_mb) or threshold_mb <= 0:
+        raise ValueError("skip_large_cicids_files_mb must be a finite positive number.")
     files = sorted(root.rglob("*.csv"))
     if not files:
         raise FileNotFoundError(f"No CICIDS2018 CSV files under {root}")
@@ -110,7 +114,7 @@ def _cicids_csv_files(
     skipped = []
     for file in files:
         size_mb = file.stat().st_size / (1024 * 1024)
-        if size_mb > cfg.skip_large_cicids_files_mb:
+        if size_mb > threshold_mb:
             skipped.append(
                 {"file": file.relative_to(root).as_posix(), "size_mb": round(size_mb, 1)}
             )
