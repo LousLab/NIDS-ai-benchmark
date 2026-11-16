@@ -233,8 +233,21 @@ def run_experiment(cfg: ExperimentConfig, smoke_frame=None) -> Path:
     test_dist = (
         split["y_test"].value_counts(normalize=True).round(4).to_dict()
     )
+    successful_models = [row["model"] for row in metrics]
+    failed_models = [
+        note["model"] for note in notes if "training_error" in note
+    ]
+    if not successful_models:
+        run_status = "failed_no_models_succeeded"
+    elif failed_models:
+        run_status = "completed_with_model_errors"
+    else:
+        run_status = "completed"
     summary = {
         "config": _jsonable(cfg.__dict__),
+        "run_status": run_status,
+        "successful_models": successful_models,
+        "failed_models": failed_models,
         "data": _jsonable(meta),
         "data_cleaning": _jsonable(duplicate_meta),
         "train_constant_features_dropped": prep.dropped_train_constant_features_,
