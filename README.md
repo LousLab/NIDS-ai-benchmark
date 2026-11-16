@@ -35,6 +35,8 @@ python -m pip install -r requirements-tabnet.txt
 python scripts/run_experiment.py --dataset wsn_ds --preset fast --task multiclass --split-mode stratified --imbalance class_weight --models rf,xgb,mlp,tabnet --seed 42 --split-seed 42 --mlp-epochs 45 --tabnet-epochs 20
 ```
 
+Pass `--output-dir path/to/runs` to save timestamped output folders somewhere other than `results/`.
+
 Presets are `smoke`, `fast`, and `full`. Use `--help` to see the available datasets, tasks, imbalance options, feature-selection options, and model choices. The smoke preset uses synthetic data to check that the pipeline runs; it is not a model benchmark.
 
 ## Outputs and evaluation
@@ -42,6 +44,15 @@ Presets are `smoke`, `fast`, and `full`. Use `--help` to see the available datas
 Each run writes a timestamped folder under `results/` with aggregate metrics, per-class reports, confusion matrices, class prevalence by split, and comparison plots. For stratified WSN-DS runs, identical feature vectors are grouped into the same partition, conflicting feature vectors with different labels are excluded, and compute caps are applied to training only. Validation and test retain the cleaned dataset's observed class prevalence. The holdout uses `--split-seed` (42 by default), while `--seed` controls model randomness. Repeating model seeds with one split isolates training variability from test-set variation.
 
 The first comparison is a fixed-configuration baseline: no model-specific hyperparameter search is performed, and validation is reserved for a later shared tuning design. It uses 150 trees for RF and XGBoost, 45 MLP epochs, and 20 TabNet epochs. The primary metric is macro-F1 over classes present in the test set; reports also include all-label macro-F1, accuracy, balanced accuracy, macro precision and recall, weighted F1, MCC, per-class support, and training time. The WSN-DS `Time` column is excluded from model inputs in both protocols because it can act as a simulation-scenario shortcut; chronological mode uses it only to order whole-time-value boundaries and collapses repeated feature vectors to their earliest occurrence. That result is a temporal/scenario-shift stress test; attack classes absent from the final window are explicitly reported as unsupported.
+
+### How to read the metrics
+
+- **Macro-F1** averages F1 across classes, giving rare attacks the same weight as common classes.
+- **Balanced accuracy** averages recall across classes, showing how often examples are detected for each class.
+- **MCC** summarizes agreement across all classes: 1 is perfect agreement, 0 indicates no correlation, and -1 is complete disagreement.
+- **Training time** measures model fitting only; it excludes data loading, preprocessing, and inference.
+
+Use macro-F1 and per-class recall/F1 to compare attack detection. Accuracy alone can look high when common classes dominate the test set.
 
 Example reduced-budget chronological stress run (caps are intentionally disabled for this split mode):
 
