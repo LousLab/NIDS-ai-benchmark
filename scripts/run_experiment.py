@@ -19,6 +19,12 @@ def main() -> None:
     )
     parser.add_argument("--dataset", choices=["wsn_ds", "cicids2018"], default="wsn_ds")
     parser.add_argument("--preset", choices=["smoke", "fast", "full"], default="fast")
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help="Directory for timestamped run outputs (default: results).",
+    )
     parser.add_argument("--task", choices=["multiclass", "binary"], default="multiclass")
     parser.add_argument(
         "--split-mode", choices=["stratified", "time"], default="stratified"
@@ -72,6 +78,7 @@ def main() -> None:
     cfg = build_config(
         dataset=args.dataset,
         preset=args.preset,
+        output_dir=args.output_dir,
         task=args.task,
         split_mode=args.split_mode,
         imbalance=args.imbalance,
