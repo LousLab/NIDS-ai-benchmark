@@ -35,7 +35,17 @@ def _load_run(run_dir: Path) -> tuple[dict, pd.DataFrame]:
     if not summary_path.is_file() or not metrics_path.is_file():
         raise FileNotFoundError(f"Expected summary.json and metrics.csv in {run_dir}")
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    if not isinstance(summary, dict) or not isinstance(summary.get("config"), dict):
+        raise ValueError(f"Run summary has no valid config object: {summary_path}")
+    if not {"seed", "models"}.issubset(summary["config"]):
+        raise ValueError(f"Run summary is missing seed or model settings: {summary_path}")
     metrics = pd.read_csv(metrics_path)
+    required_columns = {"model", *METRICS}
+    missing_columns = sorted(required_columns - set(metrics.columns))
+    if missing_columns:
+        raise ValueError(
+            f"Metrics file is missing required columns {missing_columns}: {metrics_path}"
+        )
     metrics["seed"] = int(summary["config"]["seed"])
     return summary, metrics
 
