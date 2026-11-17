@@ -46,6 +46,14 @@ def _validate_runs(runs: list[tuple[dict, pd.DataFrame]]) -> None:
     first_summary, first_metrics = runs[0]
     reference = first_summary
     reference_models = set(first_metrics["model"])
+    configured_models = set(reference["config"].get("models", []))
+    if not reference_models:
+        raise ValueError("Run has no successful model metrics to aggregate.")
+    if reference_models != configured_models:
+        raise ValueError(
+            "Run metrics do not include every configured model; "
+            "resolve model errors before aggregating seeds."
+        )
     reference_config = {
         key: value
         for key, value in reference["config"].items()
