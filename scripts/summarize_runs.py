@@ -165,6 +165,11 @@ def _plot_summary(aggregate: pd.DataFrame, class_summary: pd.DataFrame, out: Pat
 
 def summarize(run_dirs: list[Path], output_dir: Path) -> None:
     resolved = [path.resolve() for path in run_dirs]
+    resolved_output = output_dir.resolve()
+    if resolved_output in resolved:
+        raise ValueError(
+            "Aggregate output directory must be different from every input run directory."
+        )
     runs = [_load_run(path) for path in resolved]
     _validate_runs(runs)
     output_dir.mkdir(parents=True, exist_ok=True)
