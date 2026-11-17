@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 import numpy as np
@@ -22,12 +23,20 @@ def evaluate_predictions(
     class_names: list[str],
     train_seconds: float,
 ) -> dict:
+    y_true = np.asarray(y_true)
+    y_pred = np.asarray(y_pred)
+    if y_true.ndim != 1 or y_pred.ndim != 1:
+        raise ValueError("y_true and y_pred must be one-dimensional label arrays.")
     if len(y_true) == 0:
         raise ValueError("Cannot evaluate predictions on an empty test set.")
     if len(y_true) != len(y_pred):
         raise ValueError("y_true and y_pred must contain the same number of labels.")
     if not class_names:
         raise ValueError("At least one class name is required for evaluation.")
+    if len(set(class_names)) != len(class_names):
+        raise ValueError("class_names must be unique.")
+    if not math.isfinite(train_seconds) or train_seconds < 0:
+        raise ValueError("train_seconds must be finite and non-negative.")
     labels = list(range(len(class_names)))
     valid_labels = set(labels)
     if not set(np.unique(y_true)).issubset(valid_labels) or not set(
