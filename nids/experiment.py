@@ -294,6 +294,11 @@ def run_experiment(cfg: ExperimentConfig, smoke_frame=None) -> Path:
         plot_per_class_f1(class_reports, out_dir / "per_class_f1.png")
         plot_training_time(out_dir / "metrics.csv", out_dir / "training_time.png")
     (out_dir / "notes.json").write_text(json.dumps(notes, indent=2), encoding="utf-8")
+    if not metrics:
+        raise RuntimeError(
+            "No selected model completed successfully. "
+            f"Inspect the run diagnostics in {out_dir}."
+        )
     return out_dir
 
 
